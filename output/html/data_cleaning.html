@@ -378,16 +378,16 @@ library(knitr)    # nice tables in the report</code></pre>
 dim(raw)   # rows, columns</code></pre>
 <pre><code>## [1] 132  33</code></pre>
 </div>
-<div id="keep-only-students-staying-at-home-or-a-relatives-home" class="section level2">
-<h2>3. Keep only students staying at home or a relative’s home</h2>
-<p>This must be done <strong>before</strong> removing the A6 column,
-because the filter uses A6. “Other (please specify)” is the one
-respondent who stays at a relative’s home.</p>
+<div id="residence-a6" class="section level2">
+<h2>3. Residence (A6)</h2>
+<p>All respondents are kept (home, boarding place and university
+hostel). The one “Other (please specify)” answer is a relative’s home
+(ඥාති නිවස), so it is merged into <strong>Home</strong>.</p>
 <pre class="r"><code>a6 &lt;- &quot;A6 Where do you stay during the semester?&quot;
 
-kable(count(raw, .data[[a6]]), caption = &quot;A6 before filtering&quot;)</code></pre>
+kable(count(raw, .data[[a6]]), caption = &quot;A6 before merging&quot;)</code></pre>
 <table>
-<caption>A6 before filtering</caption>
+<caption>A6 before merging</caption>
 <thead>
 <tr class="header">
 <th align="left">A6 Where do you stay during the semester?</th>
@@ -413,51 +413,80 @@ kable(count(raw, .data[[a6]]), caption = &quot;A6 before filtering&quot;)</code>
 </tr>
 </tbody>
 </table>
-<pre class="r"><code>data &lt;- raw %&gt;%
-  filter(.data[[a6]] %in% c(&quot;Home&quot;, &quot;Other (please specify)&quot;))
+<pre class="r"><code>data &lt;- raw
 
-nrow(data)   # respondents kept</code></pre>
-<pre><code>## [1] 104</code></pre>
+kable(count(data, .data[[a6]]), caption = &quot;A6 after merging&quot;)</code></pre>
+<table>
+<caption>A6 after merging</caption>
+<thead>
+<tr class="header">
+<th align="left">A6 Where do you stay during the semester?</th>
+<th align="right">n</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Boarding place</td>
+<td align="right">20</td>
+</tr>
+<tr class="even">
+<td align="left">Home</td>
+<td align="right">103</td>
+</tr>
+<tr class="odd">
+<td align="left">Other (please specify)</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">University hostel</td>
+<td align="right">8</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>nrow(data)   # all respondents kept</code></pre>
+<pre><code>## [1] 132</code></pre>
 </div>
 <div id="remove-unwanted-columns" class="section level2">
 <h2>4. Remove unwanted columns</h2>
 <p>Removes ID, Submitted, Status, Language, Duration (s), A1, index and
-both A6 columns (the A6 question and its “other (specify)” text).</p>
+the “A6 other (specify)” text column (no longer needed after the merge).
+The A6 residence question itself is kept.</p>
 <pre class="r"><code>data &lt;- data %&gt;%
   select(-ID, -Submitted, -Status, -Language, -`Duration (s)`,
          -starts_with(&quot;A1 &quot;),
          -starts_with(&quot;index &quot;),
-         -starts_with(&quot;A6 &quot;))
+         -`A6 other (specify)`)
 
 names(data)</code></pre>
 <pre><code>##  [1] &quot;A2 How many days a week do you usually travel to the university?&quot;                
 ##  [2] &quot;A3 Your faculty&quot;                                                                 
 ##  [3] &quot;A4 Year of study&quot;                                                                
 ##  [4] &quot;A5 Gender&quot;                                                                       
-##  [5] &quot;B1 Approximate ONE-WAY distance from where you stay to the university&quot;           
-##  [6] &quot;B2 Main transport mode&quot;                                                          
-##  [7] &quot;B3 On your trip from HOME (or where you stay) to the CAMPUS, how many times do y&quot;
-##  [8] &quot;B4 How do you get from where you stay to your main vehicle?&quot;                     
-##  [9] &quot;B5 How do you get from your main vehicle to the university gate?&quot;                
-## [10] &quot;B6 During the journey, do you usually get a seat?&quot;                               
-## [11] &quot;B7 How often do you arrive 15 or more minutes later than you expected?&quot;          
-## [12] &quot;B8 How long does your trip to the university usually take, one way?&quot;             
-## [13] &quot;B9 How long do you usually wait for your vehicle?&quot;                               
-## [14] &quot;B10 When do you usually leave home (or where you stay) for the university?&quot;      
-## [15] &quot;B11 Roughly what portion of your daily budget/allowance goes toward travel expen&quot;
-## [16] &quot;B12 During your journeys to the university, how often do you feel unsafe?&quot;       
-## [17] &quot;C1 During the journey, did you feel stressed or relaxed?&quot;                        
-## [18] &quot;C2 During the journey, did you feel worried or confident?&quot;                       
-## [19] &quot;C3 During the journey, did you feel hurried or calm?&quot;                            
-## [20] &quot;C4 Do you feel this kind of stress these days?&quot;                                  
-## [21] &quot;D1 How would you rate the quality of your sleep last night?&quot;                     
-## [22] &quot;D2 How much academic workload pressure do you feel today?&quot;                       
-## [23] &quot;D3 How crowded was your bus or train today?&quot;                                     
-## [24] &quot;D4 Did weather conditions (heat, humidity, or rain) make your commute harder tod&quot;</code></pre>
+##  [5] &quot;A6 Where do you stay during the semester?&quot;                                       
+##  [6] &quot;B1 Approximate ONE-WAY distance from where you stay to the university&quot;           
+##  [7] &quot;B2 Main transport mode&quot;                                                          
+##  [8] &quot;B3 On your trip from HOME (or where you stay) to the CAMPUS, how many times do y&quot;
+##  [9] &quot;B4 How do you get from where you stay to your main vehicle?&quot;                     
+## [10] &quot;B5 How do you get from your main vehicle to the university gate?&quot;                
+## [11] &quot;B6 During the journey, do you usually get a seat?&quot;                               
+## [12] &quot;B7 How often do you arrive 15 or more minutes later than you expected?&quot;          
+## [13] &quot;B8 How long does your trip to the university usually take, one way?&quot;             
+## [14] &quot;B9 How long do you usually wait for your vehicle?&quot;                               
+## [15] &quot;B10 When do you usually leave home (or where you stay) for the university?&quot;      
+## [16] &quot;B11 Roughly what portion of your daily budget/allowance goes toward travel expen&quot;
+## [17] &quot;B12 During your journeys to the university, how often do you feel unsafe?&quot;       
+## [18] &quot;C1 During the journey, did you feel stressed or relaxed?&quot;                        
+## [19] &quot;C2 During the journey, did you feel worried or confident?&quot;                       
+## [20] &quot;C3 During the journey, did you feel hurried or calm?&quot;                            
+## [21] &quot;C4 Do you feel this kind of stress these days?&quot;                                  
+## [22] &quot;D1 How would you rate the quality of your sleep last night?&quot;                     
+## [23] &quot;D2 How much academic workload pressure do you feel today?&quot;                       
+## [24] &quot;D3 How crowded was your bus or train today?&quot;                                     
+## [25] &quot;D4 Did weather conditions (heat, humidity, or rain) make your commute harder tod&quot;</code></pre>
 </div>
 <div id="faculty-a3-keep-the-top-5-merge-the-rest" class="section level2">
 <h2>5. Faculty (A3): keep the top 5, merge the rest</h2>
-<p>The top 5 are worked out from the filtered data.</p>
+<p>The top 5 are worked out from all respondents.</p>
 <pre class="r"><code>a3 &lt;- &quot;A3 Your faculty&quot;
 
 kable(count(data, .data[[a3]], sort = TRUE), caption = &quot;A3 before merging&quot;)</code></pre>
@@ -472,35 +501,35 @@ kable(count(data, .data[[a3]], sort = TRUE), caption = &quot;A3 before merging&q
 <tbody>
 <tr class="odd">
 <td align="left">Applied Sciences</td>
-<td align="right">54</td>
+<td align="right">66</td>
 </tr>
 <tr class="even">
-<td align="left">Engineering</td>
-<td align="right">12</td>
+<td align="left">Management Studies and Commerce</td>
+<td align="right">17</td>
 </tr>
 <tr class="odd">
-<td align="left">Management Studies and Commerce</td>
-<td align="right">12</td>
+<td align="left">Engineering</td>
+<td align="right">15</td>
 </tr>
 <tr class="even">
 <td align="left">Computing</td>
-<td align="right">8</td>
+<td align="right">11</td>
 </tr>
 <tr class="odd">
 <td align="left">Technology</td>
-<td align="right">7</td>
+<td align="right">9</td>
 </tr>
 <tr class="even">
 <td align="left">Humanities and Social Sciences</td>
-<td align="right">5</td>
+<td align="right">6</td>
 </tr>
 <tr class="odd">
-<td align="left">Allied Health Sciences</td>
-<td align="right">3</td>
+<td align="left">Medical Sciences</td>
+<td align="right">4</td>
 </tr>
 <tr class="even">
-<td align="left">Medical Sciences</td>
-<td align="right">2</td>
+<td align="left">Allied Health Sciences</td>
+<td align="right">3</td>
 </tr>
 <tr class="odd">
 <td align="left">Dental Sciences</td>
@@ -527,27 +556,27 @@ kable(count(data, .data[[a3]], sort = TRUE), caption = &quot;A3 after merging&qu
 <tbody>
 <tr class="odd">
 <td align="left">Applied Sciences</td>
-<td align="right">54</td>
+<td align="right">66</td>
 </tr>
 <tr class="even">
-<td align="left">Engineering</td>
-<td align="right">12</td>
+<td align="left">Management Studies and Commerce</td>
+<td align="right">17</td>
 </tr>
 <tr class="odd">
-<td align="left">Management Studies and Commerce</td>
-<td align="right">12</td>
+<td align="left">Engineering</td>
+<td align="right">15</td>
 </tr>
 <tr class="even">
 <td align="left">Other faculties</td>
-<td align="right">11</td>
+<td align="right">14</td>
 </tr>
 <tr class="odd">
 <td align="left">Computing</td>
-<td align="right">8</td>
+<td align="right">11</td>
 </tr>
 <tr class="even">
 <td align="left">Technology</td>
-<td align="right">7</td>
+<td align="right">9</td>
 </tr>
 </tbody>
 </table>
@@ -582,19 +611,19 @@ CAMPUS, how many times do y</th>
 <tbody>
 <tr class="odd">
 <td align="left">1 change</td>
-<td align="right">33</td>
+<td align="right">35</td>
 </tr>
 <tr class="even">
 <td align="left">2 changes</td>
-<td align="right">25</td>
+<td align="right">26</td>
 </tr>
 <tr class="odd">
 <td align="left">3 or more changes</td>
-<td align="right">8</td>
+<td align="right">9</td>
 </tr>
 <tr class="even">
 <td align="left">No change</td>
-<td align="right">38</td>
+<td align="right">62</td>
 </tr>
 </tbody>
 </table>
@@ -609,6 +638,7 @@ Excel file.</p>
   A3  = &quot;faculty&quot;,            # Faculty
   A4  = &quot;study_year&quot;,         # Year of study
   A5  = &quot;gender&quot;,             # Gender
+  A6  = &quot;residence&quot;,          # Where they stay during the semester
   B1  = &quot;distance&quot;,           # One-way distance to university
   B2  = &quot;main_mode&quot;,          # Main transport mode
   B3  = &quot;vehicle_changes&quot;,    # Number of vehicle changes
@@ -681,114 +711,119 @@ university?</td>
 <td align="left">Gender</td>
 </tr>
 <tr class="odd">
+<td align="left">residence</td>
+<td align="left">A6</td>
+<td align="left">Where do you stay during the semester?</td>
+</tr>
+<tr class="even">
 <td align="left">distance</td>
 <td align="left">B1</td>
 <td align="left">Approximate ONE-WAY distance from where you stay to the
 university</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">main_mode</td>
 <td align="left">B2</td>
 <td align="left">Main transport mode</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">vehicle_changes</td>
 <td align="left">B3</td>
 <td align="left">On your trip from HOME (or where you stay) to the
 CAMPUS, how many times do y</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">access_mode</td>
 <td align="left">B4</td>
 <td align="left">How do you get from where you stay to your main
 vehicle?</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">egress_mode</td>
 <td align="left">B5</td>
 <td align="left">How do you get from your main vehicle to the university
 gate?</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">seat</td>
 <td align="left">B6</td>
 <td align="left">During the journey, do you usually get a seat?</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">late_arrivals</td>
 <td align="left">B7</td>
 <td align="left">How often do you arrive 15 or more minutes later than
 you expected?</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">trip_time</td>
 <td align="left">B8</td>
 <td align="left">How long does your trip to the university usually take,
 one way?</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">wait_time</td>
 <td align="left">B9</td>
 <td align="left">How long do you usually wait for your vehicle?</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">departure_time</td>
 <td align="left">B10</td>
 <td align="left">When do you usually leave home (or where you stay) for
 the university?</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">travel_budget</td>
 <td align="left">B11</td>
 <td align="left">Roughly what portion of your daily budget/allowance
 goes toward travel expen</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">feel_unsafe</td>
 <td align="left">B12</td>
 <td align="left">During your journeys to the university, how often do
 you feel unsafe?</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">stressed_relaxed</td>
 <td align="left">C1</td>
 <td align="left">During the journey, did you feel stressed or
 relaxed?</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">worried_confident</td>
 <td align="left">C2</td>
 <td align="left">During the journey, did you feel worried or
 confident?</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">hurried_calm</td>
 <td align="left">C3</td>
 <td align="left">During the journey, did you feel hurried or calm?</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">stress_these_days</td>
 <td align="left">C4</td>
 <td align="left">Do you feel this kind of stress these days?</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">sleep_quality</td>
 <td align="left">D1</td>
 <td align="left">How would you rate the quality of your sleep last
 night?</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">workload_pressure</td>
 <td align="left">D2</td>
 <td align="left">How much academic workload pressure do you feel
 today?</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">crowding</td>
 <td align="left">D3</td>
 <td align="left">How crowded was your bus or train today?</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">weather_impact</td>
 <td align="left">D4</td>
 <td align="left">Did weather conditions (heat, humidity, or rain) make
@@ -873,7 +908,7 @@ variable_key &lt;- rbind(
 
 summary(data$stress_score)</code></pre>
 <pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-## -3.0000  0.0000  0.6700  0.5194  1.3300  3.0000</code></pre>
+## -3.0000 -0.3300  0.3300  0.3284  1.0000  3.0000</code></pre>
 <pre class="r"><code>kable(count(data, stress_level), caption = &quot;Stress level&quot;)</code></pre>
 <table>
 <caption>Stress level</caption>
@@ -886,15 +921,15 @@ summary(data$stress_score)</code></pre>
 <tbody>
 <tr class="odd">
 <td align="left">High</td>
-<td align="right">29</td>
+<td align="right">32</td>
 </tr>
 <tr class="even">
 <td align="left">Low</td>
-<td align="right">10</td>
+<td align="right">15</td>
 </tr>
 <tr class="odd">
 <td align="left">Moderate</td>
-<td align="right">65</td>
+<td align="right">85</td>
 </tr>
 </tbody>
 </table>
@@ -904,8 +939,8 @@ summary(data$stress_score)</code></pre>
 <pre class="r"><code>write_xlsx(list(&quot;Cleaned data&quot; = data, &quot;Variable key&quot; = variable_key),
            &quot;commuter-survey-cleaned.xlsx&quot;)</code></pre>
 <p>The cleaned file <strong>commuter-survey-cleaned.xlsx</strong> is
-saved in the same folder as this <code>.Rmd</code> file: 104 respondents
-and 26 variables. It has two sheets: <strong>Cleaned data</strong> and
+saved in the same folder as this <code>.Rmd</code> file: 132 respondents
+and 27 variables. It has two sheets: <strong>Cleaned data</strong> and
 <strong>Variable key</strong>.</p>
 </div>
 

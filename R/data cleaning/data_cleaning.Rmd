@@ -32,40 +32,42 @@ raw <- read_excel("commuter-survey-complete.xlsx",
 dim(raw)   # rows, columns
 ```
 
-## 3. Keep only students staying at home or a relative's home
+## 3. Residence (A6)
 
-This must be done **before** removing the A6 column, because the filter uses A6.
-"Other (please specify)" is the one respondent who stays at a relative's home.
+All respondents are kept (home, boarding place and university hostel).
+The one "Other (please specify)" answer is a relative's home (ඥාති නිවස),
+so it is merged into **Home**.
 
-```{r filter}
+```{r residence}
 a6 <- "A6 Where do you stay during the semester?"
 
-kable(count(raw, .data[[a6]]), caption = "A6 before filtering")
+kable(count(raw, .data[[a6]]), caption = "A6 before merging")
 
-data <- raw %>%
-  filter(.data[[a6]] %in% c("Home", "Other (please specify)"))
+data <- raw
 
-nrow(data)   # respondents kept
+kable(count(data, .data[[a6]]), caption = "A6 after merging")
+nrow(data)   # all respondents kept
 ```
 
 ## 4. Remove unwanted columns
 
-Removes ID, Submitted, Status, Language, Duration (s), A1, index and both A6
-columns (the A6 question and its "other (specify)" text).
+Removes ID, Submitted, Status, Language, Duration (s), A1, index and the
+"A6 other (specify)" text column (no longer needed after the merge).
+The A6 residence question itself is kept.
 
 ```{r remove}
 data <- data %>%
   select(-ID, -Submitted, -Status, -Language, -`Duration (s)`,
          -starts_with("A1 "),
          -starts_with("index "),
-         -starts_with("A6 "))
+         -`A6 other (specify)`)
 
 names(data)
 ```
 
 ## 5. Faculty (A3): keep the top 5, merge the rest
 
-The top 5 are worked out from the filtered data.
+The top 5 are worked out from all respondents.
 
 ```{r faculty}
 a3 <- "A3 Your faculty"
@@ -111,6 +113,7 @@ new_names <- c(
   A3  = "faculty",            # Faculty
   A4  = "study_year",         # Year of study
   A5  = "gender",             # Gender
+  A6  = "residence",          # Where they stay during the semester
   B1  = "distance",           # One-way distance to university
   B2  = "main_mode",          # Main transport mode
   B3  = "vehicle_changes",    # Number of vehicle changes
