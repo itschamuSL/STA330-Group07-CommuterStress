@@ -1,0 +1,110 @@
+---
+title: "Commuter Friction Survey – Data Cleaning"
+author: "Group Project – Data Analysis and Preparation of Reports"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+## 1. Load packages
+
+Run this once in the Console first if the packages are not installed:
+`install.packages(c("readxl", "dplyr", "writexl", "knitr", "rmarkdown"))`
+
+```{r packages}
+library(readxl)   # read the Excel file
+library(dplyr)    # data cleaning
+library(writexl)  # write the cleaned Excel file
+library(knitr)    # nice tables in the report
+```
+
+## 2. Read the raw data
+
+The Excel file must be in the **same folder** as this `.Rmd` file.
+
+```{r read}
+raw <- read_excel("commuter-survey-complete.xlsx",
+                  sheet = "Data (labels)")
+
+dim(raw)   # rows, columns
+```
+
+## 3. Keep only students staying at home or a relative's home
+
+This must be done **before** removing the A6 column, because the filter uses A6.
+"Other (please specify)" is the one respondent who stays at a relative's home.
+
+```{r filter}
+a6 <- "A6 Where do you stay during the semester?"
+
+kable(count(raw, .data[[a6]]), caption = "A6 before filtering")
+
+data <- raw %>%
+  filter(.data[[a6]] %in% c("Home", "Other (please specify)"))
+
+nrow(data)   # respondents kept
+```
+
+## 4. Remove unwanted columns
+
+Removes ID, Submitted, Status, Language, Duration (s), A1, index and both A6
+columns (the A6 question and its "other (specify)" text).
+
+```{r remove}
+data <- data %>%
+  select(-ID, -Submitted, -Status, -Language, -`Duration (s)`,
+         -starts_with("A1 "),
+         -starts_with("index "),
+         -starts_with("A6 "))
+
+names(data)
+```
+
+## 5. Faculty (A3): keep the top 5, merge the rest
+
+The top 5 are worked out from the filtered data.
+
+```{r faculty}
+a3 <- "A3 Your faculty"
+
+kable(count(data, .data[[a3]], sort = TRUE), caption = "A3 before merging")
+
+top5 <- data %>%
+  count(.data[[a3]], sort = TRUE) %>%
+  slice_head(n = 5) %>%
+  pull(1)
+
+data[[a3]] <- ifelse(data[[a3]] %in% top5, data[[a3]], "Other faculties")
+
+kable(count(data, .data[[a3]], sort = TRUE), caption = "A3 after merging")
+```
+
+## 6. Vehicle changes (B3): relabel as text categories
+
+B3 mixes numbers (0, 1, 2) with text ("3 or more"), so Excel flags the numbers
+as "Number stored as text". B3 is a categorical variable, so it is relabelled
+with clear text labels.
+
+```{r b3}
+b3 <- names(data)[startsWith(names(data), "B3 ")]
+
+data[[b3]] <- recode(as.character(data[[b3]]),
+                     "0"         = "No change",
+                     "1"         = "1 change",
+                     "2"         = "2 changes",
+                     "3 or more" = "3 or more changes")
+
+kable(count(data, .data[[b3]]), caption = "B3 after relabelling")
+```
+
+## 7. Save the cleaned data
+
+```{r save}
+write_xlsx(data, "commuter-survey-cleaned.xlsx")
+```
+
+The cleaned file **commuter-survey-cleaned.xlsx** is saved in the same folder as
+this `.Rmd` file: `r nrow(data)` respondents and `r ncol(data)` variables.
