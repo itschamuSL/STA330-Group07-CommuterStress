@@ -100,11 +100,107 @@ data[[b3]] <- recode(as.character(data[[b3]]),
 kable(count(data, .data[[b3]]), caption = "B3 after relabelling")
 ```
 
-## 7. Save the cleaned data
+## 7. Rename columns with short, meaningful names
+
+Each long question heading is replaced with a short name. The table below is the
+variable key, which is also saved as a second sheet in the Excel file.
+
+```{r rename}
+new_names <- c(
+  A2  = "days_per_week",      # Days per week travelling to university
+  A3  = "faculty",            # Faculty
+  A4  = "study_year",         # Year of study
+  A5  = "gender",             # Gender
+  B1  = "distance",           # One-way distance to university
+  B2  = "main_mode",          # Main transport mode
+  B3  = "vehicle_changes",    # Number of vehicle changes
+  B4  = "access_mode",        # How they get to the main vehicle
+  B5  = "egress_mode",        # How they get from main vehicle to the gate
+  B6  = "seat",               # Usually get a seat or stand
+  B7  = "late_arrivals",      # Days per week arriving 15+ min late
+  B8  = "trip_time",          # One-way trip time
+  B9  = "wait_time",          # Waiting time for vehicle
+  B10 = "departure_time",     # Time leaving for university
+  B11 = "travel_budget",      # Share of daily budget spent on travel
+  B12 = "feel_unsafe",        # How often they feel unsafe
+  C1  = "stressed_relaxed",   # Stressed (-3) to relaxed (+3)
+  C2  = "worried_confident",  # Worried (-3) to confident (+3)
+  C3  = "hurried_calm",       # Hurried (-3) to calm (+3)
+  C4  = "stress_these_days",  # Feel this kind of stress these days
+  D1  = "sleep_quality",      # Sleep quality last night
+  D2  = "workload_pressure",  # Academic workload pressure today
+  D3  = "crowding",           # Crowding on bus/train today
+  D4  = "weather_impact"      # Weather made commute harder today
+)
+
+# The question code is the first word of each heading (e.g. "B3")
+old_headings <- names(data)
+codes        <- sub(" .*", "", old_headings)
+
+variable_key <- data.frame(
+  variable = unname(new_names[codes]),
+  code     = codes,
+  question = sub("^\\S+ ", "", old_headings)
+)
+
+names(data) <- new_names[codes]
+
+kable(variable_key, caption = "Variable key")
+```
+
+## 8. Commute Stress Score (STS) and stress level
+
+Based on the STS Stress Score Guide:
+
+* C1–C3 are scored from −3 to +3. The number is taken from the start of each
+  label (e.g. "-2 Quite stressed" → −2, "+1 Slightly relaxed" → +1).
+* **Stress score = − (C1 + C2 + C3) / 3**, ranging from −3 (very relaxed) to
+  +3 (very stressed). A higher value means more stress.
+* **Stress level:** above +1 = High, −1 to +1 = Moderate, below −1 = Low.
+
+```{r stress}
+# Take the leading number from each label, e.g. "-2 Quite stressed" -> -2
+score_of <- function(x) as.numeric(sub(" .*", "", x))
+
+c1 <- score_of(data$stressed_relaxed)
+c2 <- score_of(data$worried_confident)
+c3 <- score_of(data$hurried_calm)
+
+raw_score <- -(c1 + c2 + c3) / 3
+
+data$stress_score <- round(raw_score, 2)
+data$stress_level <- case_when(
+  raw_score >  1 ~ "High",
+  raw_score < -1 ~ "Low",
+  TRUE           ~ "Moderate"     # -1 to +1, including exactly -1 and +1
+)
+
+# Check against the worked examples in the guide (A = +2.00 High,
+# B = 0.00 Moderate, C = -2.33 Low)
+ex <- data.frame(C1 = c(-2, 1, 3), C2 = c(-1, 0, 2), C3 = c(-3, -1, 2))
+ex$score <- round(-(ex$C1 + ex$C2 + ex$C3) / 3, 2)
+kable(ex, caption = "Worked examples from the guide")
+
+# Add the two new variables to the variable key
+variable_key <- rbind(
+  variable_key,
+  data.frame(variable = c("stress_score", "stress_level"),
+             code     = c("STS", "STS"),
+             question = c("Commute Stress Score = -(C1 + C2 + C3) / 3, from -3 (very relaxed) to +3 (very stressed)",
+                          "Stress level: High (score above +1), Moderate (-1 to +1), Low (below -1)"))
+)
+
+summary(data$stress_score)
+kable(count(data, stress_level), caption = "Stress level")
+```
+
+## 9. Save the cleaned data
 
 ```{r save}
-write_xlsx(data, "commuter-survey-cleaned.xlsx")
+write_xlsx(list("Cleaned data" = data, "Variable key" = variable_key),
+           "commuter-survey-cleaned.xlsx")
 ```
 
 The cleaned file **commuter-survey-cleaned.xlsx** is saved in the same folder as
 this `.Rmd` file: `r nrow(data)` respondents and `r ncol(data)` variables.
+It has two sheets: **Cleaned data** and **Variable key**.

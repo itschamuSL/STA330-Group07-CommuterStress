@@ -599,12 +599,314 @@ CAMPUS, how many times do y</th>
 </tbody>
 </table>
 </div>
+<div id="rename-columns-with-short-meaningful-names" class="section level2">
+<h2>7. Rename columns with short, meaningful names</h2>
+<p>Each long question heading is replaced with a short name. The table
+below is the variable key, which is also saved as a second sheet in the
+Excel file.</p>
+<pre class="r"><code>new_names &lt;- c(
+  A2  = &quot;days_per_week&quot;,      # Days per week travelling to university
+  A3  = &quot;faculty&quot;,            # Faculty
+  A4  = &quot;study_year&quot;,         # Year of study
+  A5  = &quot;gender&quot;,             # Gender
+  B1  = &quot;distance&quot;,           # One-way distance to university
+  B2  = &quot;main_mode&quot;,          # Main transport mode
+  B3  = &quot;vehicle_changes&quot;,    # Number of vehicle changes
+  B4  = &quot;access_mode&quot;,        # How they get to the main vehicle
+  B5  = &quot;egress_mode&quot;,        # How they get from main vehicle to the gate
+  B6  = &quot;seat&quot;,               # Usually get a seat or stand
+  B7  = &quot;late_arrivals&quot;,      # Days per week arriving 15+ min late
+  B8  = &quot;trip_time&quot;,          # One-way trip time
+  B9  = &quot;wait_time&quot;,          # Waiting time for vehicle
+  B10 = &quot;departure_time&quot;,     # Time leaving for university
+  B11 = &quot;travel_budget&quot;,      # Share of daily budget spent on travel
+  B12 = &quot;feel_unsafe&quot;,        # How often they feel unsafe
+  C1  = &quot;stressed_relaxed&quot;,   # Stressed (-3) to relaxed (+3)
+  C2  = &quot;worried_confident&quot;,  # Worried (-3) to confident (+3)
+  C3  = &quot;hurried_calm&quot;,       # Hurried (-3) to calm (+3)
+  C4  = &quot;stress_these_days&quot;,  # Feel this kind of stress these days
+  D1  = &quot;sleep_quality&quot;,      # Sleep quality last night
+  D2  = &quot;workload_pressure&quot;,  # Academic workload pressure today
+  D3  = &quot;crowding&quot;,           # Crowding on bus/train today
+  D4  = &quot;weather_impact&quot;      # Weather made commute harder today
+)
+
+# The question code is the first word of each heading (e.g. &quot;B3&quot;)
+old_headings &lt;- names(data)
+codes        &lt;- sub(&quot; .*&quot;, &quot;&quot;, old_headings)
+
+variable_key &lt;- data.frame(
+  variable = unname(new_names[codes]),
+  code     = codes,
+  question = sub(&quot;^\\S+ &quot;, &quot;&quot;, old_headings)
+)
+
+names(data) &lt;- new_names[codes]
+
+kable(variable_key, caption = &quot;Variable key&quot;)</code></pre>
+<table>
+<caption>Variable key</caption>
+<colgroup>
+<col width="17%" />
+<col width="4%" />
+<col width="77%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">variable</th>
+<th align="left">code</th>
+<th align="left">question</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">days_per_week</td>
+<td align="left">A2</td>
+<td align="left">How many days a week do you usually travel to the
+university?</td>
+</tr>
+<tr class="even">
+<td align="left">faculty</td>
+<td align="left">A3</td>
+<td align="left">Your faculty</td>
+</tr>
+<tr class="odd">
+<td align="left">study_year</td>
+<td align="left">A4</td>
+<td align="left">Year of study</td>
+</tr>
+<tr class="even">
+<td align="left">gender</td>
+<td align="left">A5</td>
+<td align="left">Gender</td>
+</tr>
+<tr class="odd">
+<td align="left">distance</td>
+<td align="left">B1</td>
+<td align="left">Approximate ONE-WAY distance from where you stay to the
+university</td>
+</tr>
+<tr class="even">
+<td align="left">main_mode</td>
+<td align="left">B2</td>
+<td align="left">Main transport mode</td>
+</tr>
+<tr class="odd">
+<td align="left">vehicle_changes</td>
+<td align="left">B3</td>
+<td align="left">On your trip from HOME (or where you stay) to the
+CAMPUS, how many times do y</td>
+</tr>
+<tr class="even">
+<td align="left">access_mode</td>
+<td align="left">B4</td>
+<td align="left">How do you get from where you stay to your main
+vehicle?</td>
+</tr>
+<tr class="odd">
+<td align="left">egress_mode</td>
+<td align="left">B5</td>
+<td align="left">How do you get from your main vehicle to the university
+gate?</td>
+</tr>
+<tr class="even">
+<td align="left">seat</td>
+<td align="left">B6</td>
+<td align="left">During the journey, do you usually get a seat?</td>
+</tr>
+<tr class="odd">
+<td align="left">late_arrivals</td>
+<td align="left">B7</td>
+<td align="left">How often do you arrive 15 or more minutes later than
+you expected?</td>
+</tr>
+<tr class="even">
+<td align="left">trip_time</td>
+<td align="left">B8</td>
+<td align="left">How long does your trip to the university usually take,
+one way?</td>
+</tr>
+<tr class="odd">
+<td align="left">wait_time</td>
+<td align="left">B9</td>
+<td align="left">How long do you usually wait for your vehicle?</td>
+</tr>
+<tr class="even">
+<td align="left">departure_time</td>
+<td align="left">B10</td>
+<td align="left">When do you usually leave home (or where you stay) for
+the university?</td>
+</tr>
+<tr class="odd">
+<td align="left">travel_budget</td>
+<td align="left">B11</td>
+<td align="left">Roughly what portion of your daily budget/allowance
+goes toward travel expen</td>
+</tr>
+<tr class="even">
+<td align="left">feel_unsafe</td>
+<td align="left">B12</td>
+<td align="left">During your journeys to the university, how often do
+you feel unsafe?</td>
+</tr>
+<tr class="odd">
+<td align="left">stressed_relaxed</td>
+<td align="left">C1</td>
+<td align="left">During the journey, did you feel stressed or
+relaxed?</td>
+</tr>
+<tr class="even">
+<td align="left">worried_confident</td>
+<td align="left">C2</td>
+<td align="left">During the journey, did you feel worried or
+confident?</td>
+</tr>
+<tr class="odd">
+<td align="left">hurried_calm</td>
+<td align="left">C3</td>
+<td align="left">During the journey, did you feel hurried or calm?</td>
+</tr>
+<tr class="even">
+<td align="left">stress_these_days</td>
+<td align="left">C4</td>
+<td align="left">Do you feel this kind of stress these days?</td>
+</tr>
+<tr class="odd">
+<td align="left">sleep_quality</td>
+<td align="left">D1</td>
+<td align="left">How would you rate the quality of your sleep last
+night?</td>
+</tr>
+<tr class="even">
+<td align="left">workload_pressure</td>
+<td align="left">D2</td>
+<td align="left">How much academic workload pressure do you feel
+today?</td>
+</tr>
+<tr class="odd">
+<td align="left">crowding</td>
+<td align="left">D3</td>
+<td align="left">How crowded was your bus or train today?</td>
+</tr>
+<tr class="even">
+<td align="left">weather_impact</td>
+<td align="left">D4</td>
+<td align="left">Did weather conditions (heat, humidity, or rain) make
+your commute harder tod</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="commute-stress-score-sts-and-stress-level" class="section level2">
+<h2>8. Commute Stress Score (STS) and stress level</h2>
+<p>Based on the STS Stress Score Guide:</p>
+<ul>
+<li>C1–C3 are scored from −3 to +3. The number is taken from the start
+of each label (e.g. “-2 Quite stressed” → −2, “+1 Slightly relaxed” →
++1).</li>
+<li><strong>Stress score = − (C1 + C2 + C3) / 3</strong>, ranging from
+−3 (very relaxed) to +3 (very stressed). A higher value means more
+stress.</li>
+<li><strong>Stress level:</strong> above +1 = High, −1 to +1 = Moderate,
+below −1 = Low.</li>
+</ul>
+<pre class="r"><code># Take the leading number from each label, e.g. &quot;-2 Quite stressed&quot; -&gt; -2
+score_of &lt;- function(x) as.numeric(sub(&quot; .*&quot;, &quot;&quot;, x))
+
+c1 &lt;- score_of(data$stressed_relaxed)
+c2 &lt;- score_of(data$worried_confident)
+c3 &lt;- score_of(data$hurried_calm)
+
+raw_score &lt;- -(c1 + c2 + c3) / 3
+
+data$stress_score &lt;- round(raw_score, 2)
+data$stress_level &lt;- case_when(
+  raw_score &gt;  1 ~ &quot;High&quot;,
+  raw_score &lt; -1 ~ &quot;Low&quot;,
+  TRUE           ~ &quot;Moderate&quot;     # -1 to +1, including exactly -1 and +1
+)
+
+# Check against the worked examples in the guide (A = +2.00 High,
+# B = 0.00 Moderate, C = -2.33 Low)
+ex &lt;- data.frame(C1 = c(-2, 1, 3), C2 = c(-1, 0, 2), C3 = c(-3, -1, 2))
+ex$score &lt;- round(-(ex$C1 + ex$C2 + ex$C3) / 3, 2)
+kable(ex, caption = &quot;Worked examples from the guide&quot;)</code></pre>
+<table>
+<caption>Worked examples from the guide</caption>
+<thead>
+<tr class="header">
+<th align="right">C1</th>
+<th align="right">C2</th>
+<th align="right">C3</th>
+<th align="right">score</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">-2</td>
+<td align="right">-1</td>
+<td align="right">-3</td>
+<td align="right">2.00</td>
+</tr>
+<tr class="even">
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">-1</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="odd">
+<td align="right">3</td>
+<td align="right">2</td>
+<td align="right">2</td>
+<td align="right">-2.33</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code># Add the two new variables to the variable key
+variable_key &lt;- rbind(
+  variable_key,
+  data.frame(variable = c(&quot;stress_score&quot;, &quot;stress_level&quot;),
+             code     = c(&quot;STS&quot;, &quot;STS&quot;),
+             question = c(&quot;Commute Stress Score = -(C1 + C2 + C3) / 3, from -3 (very relaxed) to +3 (very stressed)&quot;,
+                          &quot;Stress level: High (score above +1), Moderate (-1 to +1), Low (below -1)&quot;))
+)
+
+summary(data$stress_score)</code></pre>
+<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+## -3.0000  0.0000  0.6700  0.5194  1.3300  3.0000</code></pre>
+<pre class="r"><code>kable(count(data, stress_level), caption = &quot;Stress level&quot;)</code></pre>
+<table>
+<caption>Stress level</caption>
+<thead>
+<tr class="header">
+<th align="left">stress_level</th>
+<th align="right">n</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">High</td>
+<td align="right">29</td>
+</tr>
+<tr class="even">
+<td align="left">Low</td>
+<td align="right">10</td>
+</tr>
+<tr class="odd">
+<td align="left">Moderate</td>
+<td align="right">65</td>
+</tr>
+</tbody>
+</table>
+</div>
 <div id="save-the-cleaned-data" class="section level2">
-<h2>7. Save the cleaned data</h2>
-<pre class="r"><code>write_xlsx(data, &quot;commuter-survey-cleaned.xlsx&quot;)</code></pre>
+<h2>9. Save the cleaned data</h2>
+<pre class="r"><code>write_xlsx(list(&quot;Cleaned data&quot; = data, &quot;Variable key&quot; = variable_key),
+           &quot;commuter-survey-cleaned.xlsx&quot;)</code></pre>
 <p>The cleaned file <strong>commuter-survey-cleaned.xlsx</strong> is
 saved in the same folder as this <code>.Rmd</code> file: 104 respondents
-and 24 variables.</p>
+and 26 variables. It has two sheets: <strong>Cleaned data</strong> and
+<strong>Variable key</strong>.</p>
 </div>
 
 
